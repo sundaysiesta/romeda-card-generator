@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>&ROMEDA PROFILE CARD GENERATOR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&display=swap" rel="stylesheet">
     <style>
         /* 全体のスタイル */
         body {
@@ -53,7 +56,8 @@
             color: #d0d0d0;
         }
 
-        .input-group input {
+        .input-group input[type="text"],
+        .input-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #555;
@@ -63,6 +67,36 @@
             font-size: 16px;
             box-sizing: border-box;
         }
+        
+        .input-group input[type="file"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #333;
+            color: #f0f0f0;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .checkbox-group input {
+            margin-right: 5px;
+        }
+
 
         .generate-btn {
             width: 100%;
@@ -85,44 +119,62 @@
             transform: scale(0.98);
         }
 
-
         /* 右側：カードプレビュー */
         .preview {
-            width: 500px;
+            width: 550px;
         }
 
         #profile-card {
-            width: 500px;
-            height: 300px;
-            background-color: #000000;
+            width: 550px; /* 幅を広げる */
+            height: 350px; /* 高さを広げる */
             display: flex;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
         }
 
         .card-left {
-            width: 65%;
+            width: 60%;
             background-color: #ffffff;
             color: #000000;
             padding: 20px;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .card-right {
-            width: 35%;
+            width: 40%;
             background-color: #000000;
             color: #ffffff;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
             position: relative;
+        }
+
+        #card-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #444;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #fff;
+            margin-bottom: 10px;
+            flex-shrink: 0;
         }
 
         .card-header h2 {
             margin: 0;
-            font-size: 32px;
+            font-size: 28px; /* フォントサイズを調整 */
             font-weight: 900;
-            min-height: 38px; /* 文字がなくても高さ維持 */
+            min-height: 70px; /* 高さを確保して2行表示に対応 */
+            word-break: break-all; /* 長い名前を折り返す */
+            line-height: 1.2;
         }
         .card-header p {
             margin: 0;
@@ -131,39 +183,55 @@
         }
 
         .card-details {
-            margin-top: 20px;
-            font-size: 13px;
+            margin-top: 10px;
+            font-size: 11px; /* フォントを小さくしてスペース確保 */
         }
 
         .detail-item {
             display: flex;
-            margin-bottom: 8px;
+            margin-bottom: 3px; /* マージンを詰める */
         }
 
         .detail-item .label {
             font-weight: bold;
-            width: 100px;
+            width: 75px; /* 幅を調整 */
+            flex-shrink: 0;
         }
 
         .detail-item .value {
             flex: 1;
-            min-height: 16px; /* 文字がなくても高さ維持 */
+            min-height: 14px;
+            word-break: break-all;
         }
         
         .card-right-content {
-             margin-top: 15px;
+             width: 100%;
+             text-align: center;
         }
 
         .card-right .label {
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             color: #aaa;
         }
         .card-right .value {
-            font-size: 16px;
-            min-height: 20px; /* 文字がなくても高さ維持 */
+            font-size: 14px;
+            min-height: 18px;
             word-wrap: break-word;
             margin-top: 5px;
+            height: 60px;
+            overflow-y: auto;
+        }
+        
+        #card-motto {
+            font-family: 'Yuji Syuku', serif;
+            font-size: 24px;
+            margin-top: 10px;
+            font-weight: bold;
+            line-height: 1.3;
+            height: 60px;
+            word-break: break-all;
+            overflow-y: auto;
         }
         
         .card-footer {
@@ -173,6 +241,14 @@
             font-size: 18px;
             font-weight: bold;
             color: #fff;
+        }
+        
+        #card-date {
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            font-size: 10px;
+            color: #888;
         }
 
     </style>
@@ -184,6 +260,10 @@
         <p>ロメダ民に自分のことを知ってもらおう！<br>項目を入力して、君だけのカードをアピールしよう！</p>
         
         <div class="input-group">
+            <label for="icon">アイコン</label>
+            <input type="file" id="icon" accept="image/*">
+        </div>
+        <div class="input-group">
             <label for="name">名前</label>
             <input type="text" id="name" placeholder="名前やニックネームを入力">
         </div>
@@ -193,15 +273,45 @@
         </div>
         <div class="input-group">
             <label for="gender">性別</label>
-            <input type="text" id="gender" placeholder="不明">
+            <select id="gender">
+                <option value="♂">♂</option>
+                <option value="♀">♀</option>
+                <option value="不明">不明</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="mbti">MBTI</label>
+            <input type="text" id="mbti" placeholder="INFP">
+        </div>
+        <div class="input-group">
+            <label for="birthplace">出身地</label>
+            <input type="text" id="birthplace" placeholder="地球">
         </div>
         <div class="input-group">
             <label for="illness">病名</label>
             <input type="text" id="illness" placeholder="厨二病">
         </div>
-        <div class="input-group">
+         <div class="input-group">
             <label for="style">通話スタイル</label>
-            <input type="text" id="style" placeholder="通話勢 / 聞き専 / テキスト勢">
+            <select id="style">
+                <option value="通話勢">通話勢</option>
+                <option value="聞き専">聞き専</option>
+                <option value="テキスト勢">テキスト勢</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>出没時間帯</label>
+            <div class="checkbox-group" id="time-zone">
+                <label><input type="checkbox" value="朝">朝</label>
+                <label><input type="checkbox" value="昼">昼</label>
+                <label><input type="checkbox" value="夕方">夕方</label>
+                <label><input type="checkbox" value="夜">夜</label>
+                <label><input type="checkbox" value="深夜">深夜</label>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="hobby">趣味</label>
+            <input type="text" id="hobby" placeholder="音楽鑑賞">
         </div>
         <div class="input-group">
             <label for="anime">好きなアニメ</label>
@@ -210,6 +320,14 @@
         <div class="input-group">
             <label for="game">好きなゲーム</label>
             <input type="text" id="game" placeholder="Apex Legends">
+        </div>
+        <div class="input-group">
+            <label for="kinks">性癖</label>
+            <input type="text" id="kinks" placeholder="秘密">
+        </div>
+        <div class="input-group">
+            <label for="motto">座右の銘</label>
+            <input type="text" id="motto" placeholder="働きたくない">
         </div>
         <div class="input-group">
             <label for="comment">ひとこと</label>
@@ -228,12 +346,28 @@
                 </div>
                 <div class="card-details">
                     <div class="detail-item">
+                        <span class="label">MBTI</span>
+                        <span class="value" id="card-mbti"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">出身地</span>
+                        <span class="value" id="card-birthplace"></span>
+                    </div>
+                    <div class="detail-item">
                         <span class="label">病名</span>
                         <span class="value" id="card-illness"></span>
                     </div>
                     <div class="detail-item">
                         <span class="label">通話スタイル</span>
                         <span class="value" id="card-style"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">出没時間帯</span>
+                        <span class="value" id="card-time-zone"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">趣味</span>
+                        <span class="value" id="card-hobby"></span>
                     </div>
                     <div class="detail-item">
                         <span class="label">好きなアニメ</span>
@@ -243,10 +377,17 @@
                         <span class="label">好きなゲーム</span>
                         <span class="value" id="card-game"></span>
                     </div>
+                     <div class="detail-item">
+                        <span class="label">性癖</span>
+                        <span class="value" id="card-kinks"></span>
+                    </div>
                 </div>
+                <span id="card-date"></span>
             </div>
             <div class="card-right">
+                <div id="card-icon"></div>
                 <div class="card-right-content">
+                    <div id="card-motto"></div>
                     <span class="label">ひとこと</span>
                     <div class="value" id="card-comment"></div>
                 </div>
@@ -258,51 +399,90 @@
     </div>
 
     <script>
-        // 入力欄とカードの対応付け
+        // --- 初期設定 ---
         const mapping = {
-            'name': 'card-name',
-            'age': 'card-age',
-            'gender': 'card-gender',
-            'illness': 'card-illness',
-            'style': 'card-style',
-            'anime': 'card-anime',
-            'game': 'card-game',
+            'name': 'card-name', 'age': 'card-age', 'gender': 'card-gender',
+            'mbti': 'card-mbti', 'birthplace': 'card-birthplace', 'illness': 'card-illness',
+            'style': 'card-style', 'hobby': 'card-hobby', 'anime': 'card-anime',
+            'game': 'card-game', 'kinks': 'card-kinks', 'motto': 'card-motto',
             'comment': 'card-comment'
         };
 
-        // すべての入力欄にイベントリスナーを設定
-        Object.keys(mapping).forEach(inputId => {
+        // --- 関数定義 ---
+
+        // テキストと選択肢を更新する関数
+        const updateText = (inputId) => {
             const inputElement = document.getElementById(inputId);
             const cardElement = document.getElementById(mapping[inputId]);
-            
-            // ページ読み込み時に初期プレースホルダーを反映
-            cardElement.textContent = inputElement.placeholder;
+            if (!inputElement || !cardElement) return;
 
-            // 入力があるたびにカードの表示を更新
-            inputElement.addEventListener('input', () => {
-                // 入力が空になったらプレースホルダーの文字を再度表示
-                if (inputElement.value === '') {
-                    cardElement.textContent = inputElement.placeholder;
-                } else {
-                    cardElement.textContent = inputElement.value;
-                }
-            });
+            const value = inputElement.value;
+            if (inputElement.tagName.toLowerCase() === 'input' && value === '') {
+                cardElement.textContent = inputElement.placeholder;
+            } else {
+                cardElement.textContent = value;
+            }
+        };
+
+        // 出没時間帯を更新する関数
+        const updateTimes = () => {
+            const container = document.getElementById('time-zone');
+            const cardElement = document.getElementById('card-time-zone');
+            const checked = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
+            cardElement.textContent = checked.join(', ') || '不定';
+        };
+
+        // 記入日を設定する関数
+        const setDate = () => {
+            const dateElement = document.getElementById('card-date');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            dateElement.textContent = `記入日: ${year}/${month}/${day}`;
+        };
+
+        // --- イベントリスナーの設定 ---
+
+        // テキスト入力とセレクトボックスの更新
+        Object.keys(mapping).forEach(inputId => {
+            const inputElement = document.getElementById(inputId);
+            const eventType = inputElement.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+            inputElement.addEventListener(eventType, () => updateText(inputId));
+        });
+
+        // 出没時間帯チェックボックスの更新
+        document.getElementById('time-zone').addEventListener('change', updateTimes);
+
+        // アイコン画像の更新
+        document.getElementById('icon').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('card-icon').style.backgroundImage = `url(${e.target.result})`;
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
         // ダウンロードボタンの処理
-        const downloadButton = document.getElementById('download-btn');
-        downloadButton.addEventListener('click', () => {
-            // html2canvasを使ってカード部分を画像に変換
+        document.getElementById('download-btn').addEventListener('click', () => {
             html2canvas(document.getElementById('profile-card')).then(canvas => {
-                // ダウンロード用のリンクを作成
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
-                link.download = 'romeda_profile_card.png';
-                
-                // リンクをクリックしてダウンロードを実行
+                const name = document.getElementById('name').value || '名無し';
+                link.download = `${name}_romeda_card.png`;
                 link.click();
             });
         });
+        
+        // --- ページ読み込み時の初期化処理 ---
+        window.onload = () => {
+            Object.keys(mapping).forEach(updateText);
+            updateTimes();
+            setDate();
+        };
     </script>
 </body>
 </html>
