@@ -136,7 +136,7 @@
 
         #profile-card {
             width: 550px;
-            height: 380px; /* 高さを広げる */
+            height: 380px;
             display: flex;
             border-radius: 10px;
             overflow: hidden;
@@ -177,25 +177,43 @@
             margin-bottom: 10px;
             flex-shrink: 0;
         }
+        
+        .social-links {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #ccc;
+            min-height: 20px;
+            word-break: break-all;
+        }
+        .social-link svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
 
         .card-header h2 {
             margin: 0;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 900;
-            min-height: 32px;
+            min-height: 34px;
             word-break: break-all;
         }
         .card-header .alias-text {
             font-size: 16px;
             color: #444;
             min-height: 20px;
-            margin: 2px 0;
-        }
-        .card-header .x-id-text {
-            font-size: 14px;
-            color: #555;
-            min-height: 18px;
-            margin: 0 0 5px 0;
+            margin: 2px 0 8px 0;
         }
         .card-header p {
             margin: 0;
@@ -240,7 +258,7 @@
             min-height: 18px;
             word-wrap: break-word;
             margin-top: 5px;
-            height: 60px;
+            height: 45px;
             overflow-y: auto;
         }
         
@@ -291,6 +309,10 @@
         <div class="input-group">
             <label for="alias">別名</label>
             <input type="text" id="alias" placeholder="別名を入力">
+        </div>
+        <div class="input-group">
+            <label for="discord_id">Discordユーザーネーム</label>
+            <input type="text" id="discord_id" placeholder="@romeda_user">
         </div>
         <div class="input-group">
             <label for="x_id">XのID</label>
@@ -376,7 +398,6 @@
                 <div class="card-header">
                     <h2 id="card-name"></h2>
                     <p id="card-alias" class="alias-text"></p>
-                    <p id="card-x_id" class="x-id-text"></p>
                     <p><span id="card-age"></span> / <span id="card-gender"></span></p>
                 </div>
                 <div class="card-details">
@@ -425,6 +446,10 @@
             </div>
             <div class="card-right">
                 <div id="card-icon"></div>
+                <div class="social-links">
+                    <div id="card-discord_id" class="social-link"></div>
+                    <div id="card-x_id" class="social-link"></div>
+                </div>
                 <div class="card-right-content">
                     <div id="card-motto"></div>
                     <span class="label">ひとこと</span>
@@ -441,39 +466,46 @@
         // --- 初期設定 ---
         const mapping = {
             'name': 'card-name', 'alias': 'card-alias', 'age': 'card-age', 'gender': 'card-gender',
-            'job': 'card-job', 'mbti': 'card-mbti', 'x_id': 'card-x_id', 'birthplace': 'card-birthplace', 
+            'job': 'card-job', 'mbti': 'card-mbti', 'birthplace': 'card-birthplace', 
             'illness': 'card-illness', 'style': 'card-style', 'hobby': 'card-hobby', 'anime': 'card-anime',
             'game': 'card-game', 'kinks': 'card-kinks', 'motto': 'card-motto',
             'comment': 'card-comment'
         };
+        const socialMapping = ['discord_id', 'x_id'];
+
+        // --- SVGアイコン ---
+        const svgIcons = {
+            discord_id: `<svg viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 0 0-4.8851-1.5152.0741.0741 0 0 0-.0785.0371c-.211.3753-.4464.8245-.6667 1.2486-2.2884-.2854-4.5862-.2854-6.8747 0-.2203-.4241-.4558-.8733-.6667-1.2486a.077.077 0 0 0-.0785-.0371 19.7485 19.7485 0 0 0-4.8851 1.5152.069.069 0 0 0-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 0 0 .0321.056c2.0527 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 0 0 .0849-.0277c.4616-.5767.8851-1.225 1.2644-1.9361a.07.07 0 0 0-.0188-.0934 12.3232 12.3232 0 0 1-1.4324-.8177.071.071 0 0 1-.0094-.0973c.0321-.0461.0642-.0922.0922-.1383a.066.066 0 0 1 .0642-.0277c.1242.0461.2483.0922.3725.1342a.0683.0683 0 0 0 .0743-.0148 10.4668 10.4668 0 0 0 6.1437 0 .0683.0683 0 0 0 .0743.0148c.1242-.042.2483-.0881.3725-.1342a.066.066 0 0 1 .0642.0277c.0277.0461.06.0922.0922.1383a.071.071 0 0 1-.0094.0973 12.3232 12.3232 0 0 1-1.4324.8177.07.07 0 0 0-.0188.0934c.3793.7111.8028 1.3594 1.2644 1.9361a.0777.0777 0 0 0 .0849.0277c1.9516-.6067 3.9402-1.5219 5.9929-3.0294a.0824.0824 0 0 0 .0321-.056c.5229-5.4843-.5097-10.0076-2.6734-13.6602a.069.069 0 0 0-.0321-.0277ZM8.02 15.3312c-.9432 0-1.71-.764-1.71-1.71s.7668-1.71 1.71-1.71c.9474 0 1.71.764 1.71 1.71.0042.946-.7584 1.71-1.71 1.71Zm7.9748 0c-.9432 0-1.71-.764-1.71-1.71s.7668-1.71 1.71-1.71c.9474 0 1.71.764 1.71 1.71.0042.946-.7584 1.71-1.71 1.71Z"/></svg>`,
+            x_id: `<svg viewBox="0 0 16 16"><path d="M9.237 6.524 14.51.21h-1.2l-4.633 5.34L4.69.21H.21l5.525 7.928L.21 15.79h1.2l4.88-5.585 4.12 5.585h4.48L9.237 6.524Zm-1.13 1.62L7.26 7.02l-4.75-6.59h2.4l3.85 5.33.84 1.17 5.02 6.96h-2.4l-4.1-5.66Z"/></svg>`
+        };
 
         // --- 関数定義 ---
 
-        // テキストと選択肢を更新する関数
         const updateText = (inputId) => {
             const inputElement = document.getElementById(inputId);
             const cardElement = document.getElementById(mapping[inputId]);
             if (!inputElement || !cardElement) return;
-
-            let value = inputElement.value.trim();
+            cardElement.textContent = inputElement.value.trim();
+        };
+        
+        const updateSocial = (inputId) => {
+            const inputElement = document.getElementById(inputId);
+            const cardElement = document.getElementById('card-' + inputId); // 修正箇所: _ を - に変更
+            if (!inputElement || !cardElement) return;
             
+            let value = inputElement.value.trim();
             if (value === '') {
-                cardElement.textContent = '';
+                cardElement.innerHTML = '';
                 return;
             }
-            
-            let displayValue = value;
-            if (inputId === 'x_id') {
-                if (!displayValue.startsWith('@')) {
-                    displayValue = '@' + displayValue;
-                }
-                displayValue = 'X: ' + displayValue;
-            }
 
-            cardElement.textContent = displayValue;
+            if (!value.startsWith('@')) {
+                value = '@' + value;
+            }
+            
+            cardElement.innerHTML = `${svgIcons[inputId]}<span>${value}</span>`;
         };
 
-        // 出没時間帯を更新する関数
         const updateTimes = () => {
             const container = document.getElementById('time-zone');
             const cardElement = document.getElementById('card-time-zone');
@@ -481,7 +513,6 @@
             cardElement.textContent = checked.join(', ');
         };
 
-        // 記入日を設定する関数
         const setDate = () => {
             const dateElement = document.getElementById('card-date');
             const today = new Date();
@@ -493,17 +524,18 @@
 
         // --- イベントリスナーの設定 ---
 
-        // テキスト入力とセレクトボックスの更新
         Object.keys(mapping).forEach(inputId => {
             const inputElement = document.getElementById(inputId);
             const eventType = inputElement.tagName.toLowerCase() === 'select' ? 'change' : 'input';
             inputElement.addEventListener(eventType, () => updateText(inputId));
         });
+        
+        socialMapping.forEach(inputId => {
+            document.getElementById(inputId).addEventListener('input', () => updateSocial(inputId));
+        });
 
-        // 出没時間帯チェックボックスの更新
         document.getElementById('time-zone').addEventListener('change', updateTimes);
 
-        // アイコン画像の更新
         document.getElementById('icon').addEventListener('change', (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -515,10 +547,9 @@
             }
         });
 
-        // ダウンロードボタンの処理
         document.getElementById('download-btn').addEventListener('click', () => {
             html2canvas(document.getElementById('profile-card'), {
-                backgroundColor: null // 背景を透過させることで角の白みをなくす
+                backgroundColor: null
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
@@ -530,11 +561,10 @@
         
         // --- ページ読み込み時の初期化処理 ---
         window.onload = () => {
-            // ページ読み込み時はカード内を空にする
             Object.keys(mapping).forEach(updateText);
-            updateTimes(); // チェックボックスも初期化
+            socialMapping.forEach(updateSocial);
+            updateTimes();
             
-            // select要素の初期値を設定
             document.getElementById('card-gender').textContent = document.getElementById('gender').value;
             document.getElementById('card-style').textContent = document.getElementById('style').value;
 
