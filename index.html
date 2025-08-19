@@ -11,8 +11,7 @@
     <meta property="og:type" content="website">
     <!-- サイトのURLをここに入力してください -->
     <!-- <meta property="og:url" content="https://example.com/"> -->
-    <!-- 表示させたい画像のURLをここに入力してください -->
-    <!-- <meta property="og:image" content="https://example.com/image.png"> -->
+    <meta property="og:image" content="https://i.imgur.com/O2j1Xz9.png">
     <meta name="description" content="ロメダ民に自分のことを知ってもらおう！項目を入力して、君だけのカードをアピールしよう！">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -136,8 +135,8 @@
         }
 
         #profile-card {
-            width: 550px; /* 幅を広げる */
-            height: 350px; /* 高さを広げる */
+            width: 550px;
+            height: 380px; /* 高さを広げる */
             display: flex;
             border-radius: 10px;
             overflow: hidden;
@@ -181,11 +180,16 @@
 
         .card-header h2 {
             margin: 0;
-            font-size: 28px; /* フォントサイズを調整 */
+            font-size: 26px; /* フォントサイズを調整 */
             font-weight: 900;
-            min-height: 70px; /* 高さを確保して2行表示に対応 */
-            word-break: break-all; /* 長い名前を折り返す */
-            line-height: 1.2;
+            min-height: 32px;
+            word-break: break-all;
+        }
+        .card-header .alias-text {
+            font-size: 16px;
+            color: #444;
+            min-height: 20px;
+            margin-bottom: 5px;
         }
         .card-header p {
             margin: 0;
@@ -195,17 +199,17 @@
 
         .card-details {
             margin-top: 10px;
-            font-size: 11px; /* フォントを小さくしてスペース確保 */
+            font-size: 11px;
         }
 
         .detail-item {
             display: flex;
-            margin-bottom: 3px; /* マージンを詰める */
+            margin-bottom: 3px;
         }
 
         .detail-item .label {
             font-weight: bold;
-            width: 75px; /* 幅を調整 */
+            width: 75px;
             flex-shrink: 0;
         }
 
@@ -279,6 +283,10 @@
             <input type="text" id="name" placeholder="名前やニックネームを入力">
         </div>
         <div class="input-group">
+            <label for="alias">別名</label>
+            <input type="text" id="alias" placeholder="別名を入力">
+        </div>
+        <div class="input-group">
             <label for="age">年齢</label>
             <input type="text" id="age" placeholder="20">
         </div>
@@ -291,8 +299,16 @@
             </select>
         </div>
         <div class="input-group">
+            <label for="job">学年・職業</label>
+            <input type="text" id="job" placeholder="高校3年生 / NEET">
+        </div>
+        <div class="input-group">
             <label for="mbti">MBTI</label>
             <input type="text" id="mbti" placeholder="INFP">
+        </div>
+        <div class="input-group">
+            <label for="x_id">XのID</label>
+            <input type="text" id="x_id" placeholder="@romeda_server">
         </div>
         <div class="input-group">
             <label for="birthplace">出身地</label>
@@ -353,12 +369,21 @@
             <div class="card-left">
                 <div class="card-header">
                     <h2 id="card-name"></h2>
+                    <p id="card-alias" class="alias-text"></p>
                     <p><span id="card-age"></span> / <span id="card-gender"></span></p>
                 </div>
                 <div class="card-details">
                     <div class="detail-item">
+                        <span class="label">学年・職業</span>
+                        <span class="value" id="card-job"></span>
+                    </div>
+                    <div class="detail-item">
                         <span class="label">MBTI</span>
                         <span class="value" id="card-mbti"></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">XのID</span>
+                        <span class="value" id="card-x_id"></span>
                     </div>
                     <div class="detail-item">
                         <span class="label">出身地</span>
@@ -412,9 +437,9 @@
     <script>
         // --- 初期設定 ---
         const mapping = {
-            'name': 'card-name', 'age': 'card-age', 'gender': 'card-gender',
-            'mbti': 'card-mbti', 'birthplace': 'card-birthplace', 'illness': 'card-illness',
-            'style': 'card-style', 'hobby': 'card-hobby', 'anime': 'card-anime',
+            'name': 'card-name', 'alias': 'card-alias', 'age': 'card-age', 'gender': 'card-gender',
+            'job': 'card-job', 'mbti': 'card-mbti', 'x_id': 'card-x_id', 'birthplace': 'card-birthplace', 
+            'illness': 'card-illness', 'style': 'card-style', 'hobby': 'card-hobby', 'anime': 'card-anime',
             'game': 'card-game', 'kinks': 'card-kinks', 'motto': 'card-motto',
             'comment': 'card-comment'
         };
@@ -427,12 +452,16 @@
             const cardElement = document.getElementById(mapping[inputId]);
             if (!inputElement || !cardElement) return;
 
-            const value = inputElement.value;
-            if (inputElement.tagName.toLowerCase() === 'input' && value === '') {
-                cardElement.textContent = inputElement.placeholder;
-            } else {
-                cardElement.textContent = value;
+            let value = inputElement.value.trim();
+            let displayValue = value;
+
+            // XのIDの場合、入力があれば@を先頭につける（既についていなければ）
+            if (inputId === 'x_id' && value && !value.startsWith('@')) {
+                displayValue = '@' + value;
             }
+
+            // 未入力の場合は空白にする
+            cardElement.textContent = value === '' ? '' : displayValue;
         };
 
         // 出没時間帯を更新する関数
@@ -440,7 +469,8 @@
             const container = document.getElementById('time-zone');
             const cardElement = document.getElementById('card-time-zone');
             const checked = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
-            cardElement.textContent = checked.join(', ') || '不定';
+            // 未選択の場合は空白にする
+            cardElement.textContent = checked.join(', ');
         };
 
         // 記入日を設定する関数
@@ -479,7 +509,9 @@
 
         // ダウンロードボタンの処理
         document.getElementById('download-btn').addEventListener('click', () => {
-            html2canvas(document.getElementById('profile-card')).then(canvas => {
+            html2canvas(document.getElementById('profile-card'), {
+                backgroundColor: null // 背景を透過させることで角の白みをなくす
+            }).then(canvas => {
                 const link = document.createElement('a');
                 link.href = canvas.toDataURL('image/png');
                 const name = document.getElementById('name').value || '名無し';
@@ -490,8 +522,17 @@
         
         // --- ページ読み込み時の初期化処理 ---
         window.onload = () => {
-            Object.keys(mapping).forEach(updateText);
-            updateTimes();
+            // ページ読み込み時はプレースホルダーを表示
+            Object.keys(mapping).forEach(inputId => {
+                const inputElement = document.getElementById(inputId);
+                const cardElement = document.getElementById(mapping[inputId]);
+                if (inputElement.placeholder) {
+                    cardElement.textContent = inputElement.placeholder;
+                }
+            });
+            const cardTimeZone = document.getElementById('card-time-zone');
+            cardTimeZone.textContent = '不定';
+
             setDate();
         };
     </script>
