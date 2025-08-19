@@ -180,7 +180,7 @@
 
         .card-header h2 {
             margin: 0;
-            font-size: 26px; /* フォントサイズを調整 */
+            font-size: 26px;
             font-weight: 900;
             min-height: 32px;
             word-break: break-all;
@@ -189,7 +189,13 @@
             font-size: 16px;
             color: #444;
             min-height: 20px;
-            margin-bottom: 5px;
+            margin: 2px 0;
+        }
+        .card-header .x-id-text {
+            font-size: 14px;
+            color: #555;
+            min-height: 18px;
+            margin: 0 0 5px 0;
         }
         .card-header p {
             margin: 0;
@@ -287,6 +293,10 @@
             <input type="text" id="alias" placeholder="別名を入力">
         </div>
         <div class="input-group">
+            <label for="x_id">XのID</label>
+            <input type="text" id="x_id" placeholder="@romeda_server">
+        </div>
+        <div class="input-group">
             <label for="age">年齢</label>
             <input type="text" id="age" placeholder="20">
         </div>
@@ -305,10 +315,6 @@
         <div class="input-group">
             <label for="mbti">MBTI</label>
             <input type="text" id="mbti" placeholder="INFP">
-        </div>
-        <div class="input-group">
-            <label for="x_id">XのID</label>
-            <input type="text" id="x_id" placeholder="@romeda_server">
         </div>
         <div class="input-group">
             <label for="birthplace">出身地</label>
@@ -370,6 +376,7 @@
                 <div class="card-header">
                     <h2 id="card-name"></h2>
                     <p id="card-alias" class="alias-text"></p>
+                    <p id="card-x_id" class="x-id-text"></p>
                     <p><span id="card-age"></span> / <span id="card-gender"></span></p>
                 </div>
                 <div class="card-details">
@@ -380,10 +387,6 @@
                     <div class="detail-item">
                         <span class="label">MBTI</span>
                         <span class="value" id="card-mbti"></span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">XのID</span>
-                        <span class="value" id="card-x_id"></span>
                     </div>
                     <div class="detail-item">
                         <span class="label">出身地</span>
@@ -453,15 +456,21 @@
             if (!inputElement || !cardElement) return;
 
             let value = inputElement.value.trim();
+            
+            if (value === '') {
+                cardElement.textContent = '';
+                return;
+            }
+            
             let displayValue = value;
-
-            // XのIDの場合、入力があれば@を先頭につける（既についていなければ）
-            if (inputId === 'x_id' && value && !value.startsWith('@')) {
-                displayValue = '@' + value;
+            if (inputId === 'x_id') {
+                if (!displayValue.startsWith('@')) {
+                    displayValue = '@' + displayValue;
+                }
+                displayValue = 'X: ' + displayValue;
             }
 
-            // 未入力の場合は空白にする
-            cardElement.textContent = value === '' ? '' : displayValue;
+            cardElement.textContent = displayValue;
         };
 
         // 出没時間帯を更新する関数
@@ -469,7 +478,6 @@
             const container = document.getElementById('time-zone');
             const cardElement = document.getElementById('card-time-zone');
             const checked = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
-            // 未選択の場合は空白にする
             cardElement.textContent = checked.join(', ');
         };
 
@@ -522,16 +530,13 @@
         
         // --- ページ読み込み時の初期化処理 ---
         window.onload = () => {
-            // ページ読み込み時はプレースホルダーを表示
-            Object.keys(mapping).forEach(inputId => {
-                const inputElement = document.getElementById(inputId);
-                const cardElement = document.getElementById(mapping[inputId]);
-                if (inputElement.placeholder) {
-                    cardElement.textContent = inputElement.placeholder;
-                }
-            });
-            const cardTimeZone = document.getElementById('card-time-zone');
-            cardTimeZone.textContent = '不定';
+            // ページ読み込み時はカード内を空にする
+            Object.keys(mapping).forEach(updateText);
+            updateTimes(); // チェックボックスも初期化
+            
+            // select要素の初期値を設定
+            document.getElementById('card-gender').textContent = document.getElementById('gender').value;
+            document.getElementById('card-style').textContent = document.getElementById('style').value;
 
             setDate();
         };
